@@ -24,7 +24,6 @@ from robot.api.logger import librarylogger as robotlogger
 import apprise
 import logging
 import copy
-import sys
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s %(module)s -%(levelname)s- %(message)s"
@@ -43,7 +42,7 @@ class AppriseLibrary:
     DEFAULT_BODY = ""
     DEFAULT_CLIENTS = []
     DEFAULT_ATTACHMENTS = []
-    DEFAULT_DELIMITER = ','
+    DEFAULT_DELIMITER = ","
 
     # Class-internal Apprise parameters
     __title = None
@@ -319,6 +318,4 @@ class AppriseLibrary:
 
 
 if __name__ == "__main__":
-    a = AppriseLibrary()
-    a.set_delimiter(',')
     pass
