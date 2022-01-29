@@ -1,8 +1,8 @@
 #!/opt/local/bin/python3
 #
 # Robot Framework Keyword library wrapper for
-# https://github.com/rossengeorgiev/aprs-python
-# Author: Joerg Schultze-Lutter, 2021
+# https://github.com/caronc/apprise
+# Author: Joerg Schultze-Lutter, 2022
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,12 +43,14 @@ class AppriseLibrary:
     DEFAULT_BODY = ""
     DEFAULT_CLIENTS = []
     DEFAULT_ATTACHMENTS = []
+    DEFAULT_DELIMITER = ','
 
     # Class-internal Apprise parameters
     __title = None
     __body = None
     __clients = None
     __attachments = None
+    __delimiter = None
 
     # This is our Apprise object
     __instance = None
@@ -59,10 +61,12 @@ class AppriseLibrary:
         body: int = DEFAULT_BODY,
         clients: list = DEFAULT_CLIENTS,
         attachments: list = DEFAULT_ATTACHMENTS,
+        delimiter: str = DEFAULT_DELIMITER,
     ):
         self.__title = title
         self.__body = body
         self.__instance = None
+        self.__delimiter = delimiter
         self.__clients = self.__transform_apprise_clients(clients=clients)
         self.__attachments = self.__transform_apprise_attachments(
             attachments=attachments
@@ -75,7 +79,7 @@ class AppriseLibrary:
 
         # if we deal with a string, split it up and return it as a list
         if isinstance(clients, str):
-            return clients.split(",")
+            return clients.split(self.delimiter)
         else:
             return clients
 
@@ -88,7 +92,7 @@ class AppriseLibrary:
 
         # if we deal with a string, split it up and return it as a list
         if isinstance(attachments, str):
-            return attachments.split(",")
+            return attachments.split(self.delimiter)
         else:
             return attachments
 
@@ -104,6 +108,10 @@ class AppriseLibrary:
     @property
     def body(self):
         return self.__body
+
+    @property
+    def delimiter(self):
+        return self.__delimiter
 
     @property
     def clients(self):
@@ -134,6 +142,14 @@ class AppriseLibrary:
         if not body:
             raise ValueError("No value for 'body' has been specified")
         self.__body = body
+
+    @delimiter.setter
+    def delimiter(self, delimiter: str):
+        if not delimiter:
+            raise ValueError("No value for 'delimiter' has been specified")
+        if len(delimiter) != 1:
+            raise ValueError("'delimiter' needs to be exactly one character")
+        self.__delimiter = delimiter
 
     @attachments.setter
     def attachments(self, attachments: object):
@@ -166,6 +182,10 @@ class AppriseLibrary:
     def get_body(self):
         return self.body
 
+    @keyword("Get Delimiter")
+    def get_delimiter(self):
+        return self.delimiter
+
     @keyword("Get Clients")
     def get_clients(self):
         return self.clients
@@ -186,6 +206,11 @@ class AppriseLibrary:
     def set_body(self, body: str = None):
         logger.debug(msg="Setting 'body' attribute")
         self.body = body
+
+    @keyword("Set Delimiter")
+    def set_delimiter(self, delimiter: str = None):
+        logger.debug(msg="Setting 'delimiter' attribute")
+        self.delimiter = delimiter
 
     @keyword("Set Clients")
     def set_clients(self, clients: object):
@@ -262,6 +287,10 @@ class AppriseLibrary:
         if attachments:
             self.attachments = self.__transform_apprise_attachments(attachments)
 
+        # Check if we have received at least one client
+        if len(self.clients) < 1:
+            raise ValueError("You need to specify at least one target client")
+
         # Attach the clients
         for client in self.clients:
             logger.debug(msg=f"Attaching client '{client}'")
@@ -286,7 +315,10 @@ class AppriseLibrary:
             body=self.body,
             attach=self.attachments,
         )
+        return result
 
 
 if __name__ == "__main__":
+    a = AppriseLibrary()
+    a.set_delimiter(',')
     pass
