@@ -20,10 +20,11 @@
 #
 
 from robot.api.deco import library, keyword
-from robot.api.logger import librarylogger as logger
+from robot.api.logger import librarylogger as robotlogger
 import apprise
 import logging
 import copy
+import sys
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s %(module)s -%(levelname)s- %(message)s"
@@ -44,54 +45,52 @@ class AppriseLibrary:
     DEFAULT_ATTACHMENTS = []
 
     # Class-internal Apprise parameters
-    __apprise_title = None
-    __apprise_body = None
-    __apprise_clients = None
-    __apprise_attachments = None
+    __title = None
+    __body = None
+    __clients = None
+    __attachments = None
 
     # This is our Apprise object
-    __apprise_instance = None
+    __instance = None
 
     def __init__(
         self,
-        apprise_title: str = DEFAULT_TITLE,
-        apprise_body: int = DEFAULT_BODY,
-        apprise_clients: list = DEFAULT_CLIENTS,
-        apprise_attachments: list = DEFAULT_ATTACHMENTS,
+        title: str = DEFAULT_TITLE,
+        body: int = DEFAULT_BODY,
+        clients: list = DEFAULT_CLIENTS,
+        attachments: list = DEFAULT_ATTACHMENTS,
     ):
-        self.__apprise_title = apprise_title
-        self.__apprise_body = apprise_body
-        self.__apprise_instance = None
-        self.__apprise_clients = self.__transform_apprise_clients(
-            apprise_clients=apprise_clients
-        )
-        self.__apprise_attachments = self.__transform_apprise_attachments(
-            apprise_attachments=apprise_attachments
+        self.__title = title
+        self.__body = body
+        self.__instance = None
+        self.__clients = self.__transform_apprise_clients(clients=clients)
+        self.__attachments = self.__transform_apprise_attachments(
+            attachments=attachments
         )
 
-    def __transform_apprise_clients(self, apprise_clients: object):
+    def __transform_apprise_clients(self, clients: object):
         # we will either accept a list item or a string
-        if not isinstance(apprise_clients, (list, str)):
+        if not isinstance(clients, (list, str)):
             raise TypeError("Apprise 'clients' parameter can either be string or list")
 
         # if we deal with a string, split it up and return it as a list
-        if isinstance(apprise_clients, str):
-            return apprise_clients.split(",")
+        if isinstance(clients, str):
+            return clients.split(",")
         else:
-            return apprise_clients
+            return clients
 
-    def __transform_apprise_attachments(self, apprise_attachments: object):
+    def __transform_apprise_attachments(self, attachments: object):
         # we will either accept a list item or a string
-        if not isinstance(apprise_attachments, (list, str)):
+        if not isinstance(attachments, (list, str)):
             raise TypeError(
                 "Apprise 'attachments' parameter can either be string or list"
             )
 
         # if we deal with a string, split it up and return it as a list
-        if isinstance(apprise_attachments, str):
-            return apprise_attachments.split(",")
+        if isinstance(attachments, str):
+            return attachments.split(",")
         else:
-            return apprise_attachments
+            return attachments
 
     # Python "Getter" methods
     #
@@ -99,24 +98,24 @@ class AppriseLibrary:
     # cause an error but the keyword will not be recognized later on
     # Therefore, Robot-specific "getter" keywords are required
     @property
-    def apprise_title(self):
-        return self.__apprise_title
+    def title(self):
+        return self.__title
 
     @property
-    def apprise_body(self):
-        return self.__apprise_body
+    def body(self):
+        return self.__body
 
     @property
-    def apprise_clients(self):
-        return self.__apprise_clients
+    def clients(self):
+        return self.__clients
 
     @property
-    def apprise_attachments(self):
-        return self.__apprise_attachments
+    def attachments(self):
+        return self.__attachments
 
     @property
-    def apprise_instance(self):
-        return self.__apprise_instance
+    def instance(self):
+        return self.__instance
 
     # Python "Setter" methods
     #
@@ -124,179 +123,170 @@ class AppriseLibrary:
     # cause an error but the keyword will not be recognized later on
     # Therefore, Robot-specific "setter" keywords are required
 
-    @apprise_title.setter
-    def apprise_title(self, apprise_title: str):
-        if not apprise_title:
+    @title.setter
+    def title(self, title: str):
+        if not title:
             raise ValueError("No value for 'title' has been specified")
-        self.__apprise_title = apprise_title
+        self.__title = title
 
-    @apprise_body.setter
-    def apprise_body(self, apprise_body: str):
-        if not apprise_body:
+    @body.setter
+    def body(self, body: str):
+        if not body:
             raise ValueError("No value for 'body' has been specified")
-        self.__apprise_body = apprise_body
+        self.__body = body
 
-    @apprise_attachments.setter
-    def apprise_attachments(self, apprise_attachments: object):
-        if not apprise_attachments:
+    @attachments.setter
+    def attachments(self, attachments: object):
+        if not attachments:
             return
-        self.__apprise_attachments = self.__transform_apprise_attachments(
-            apprise_attachments=apprise_attachments
+        self.__attachments = self.__transform_apprise_attachments(
+            attachments=attachments
         )
 
-    @apprise_clients.setter
-    def apprise_clients(self, apprise_clients: object):
-        if not apprise_clients:
+    @clients.setter
+    def clients(self, clients: object):
+        if not clients:
             raise ValueError("No value for 'clients' has been specified")
-        self.__apprise_clients = self.__transform_apprise_clients(
-            apprise_clients=apprise_clients
-        )
+        self.__clients = self.__transform_apprise_clients(clients=clients)
 
-    @apprise_instance.setter
-    def apprise_instance(self, apprise_instance: object):
+    @instance.setter
+    def instance(self, instance: object):
         # Value can be "None". Therefore,
         # we simply accept the value "as is"
-        self.__apprise_instance = apprise_instance
+        self.__instance = instance
 
     #
     # Robot-specific "getter" keywords
     #
-    @keyword("Get Apprise Title")
-    def get_apprise_title(self):
-        return self.apprise_title
+    @keyword("Get Title")
+    def get_title(self):
+        return self.title
 
-    @keyword("Get Apprise Body")
-    def get_apprise_body(self):
-        return self.apprise_body
+    @keyword("Get Body")
+    def get_body(self):
+        return self.body
 
-    @keyword("Get Apprise Clients")
-    def get_apprise_clients(self):
-        return self.apprise_clients
+    @keyword("Get Clients")
+    def get_clients(self):
+        return self.clients
 
-    @keyword("Get Apprise Attachments")
-    def get_apprise_attachments(self):
-        return self.apprise_attachments
+    @keyword("Get Attachments")
+    def get_attachments(self):
+        return self.attachments
 
     #
     # Robot-specific "setter" keywords
     #
-    @keyword("Set Apprise Title")
-    def set_apprise_title(self, apprise_title: str = None):
+    @keyword("Set Title")
+    def set_title(self, title: str = None):
         logger.debug(msg="Setting 'title' attribute")
-        self.apprise_title = apprise_title
+        self.title = title
 
-    @keyword("Set Apprise Body")
-    def set_apprise_body(self, apprise_body: str = None):
+    @keyword("Set Body")
+    def set_body(self, body: str = None):
         logger.debug(msg="Setting 'body' attribute")
-        self.apprise_body = apprise_body
+        self.body = body
 
-    @keyword("Set Apprise Clients")
-    def set_apprise_clients(self, apprise_clients: object):
+    @keyword("Set Clients")
+    def set_clients(self, clients: object):
         logger.debug(msg="Setting 'clients' attribute")
-        self.__apprise_clients = self.__transform_apprise_clients(
-            apprise_clients=apprise_clients
-        )
+        self.__clients = self.__transform_apprise_clients(clients=clients)
 
-    @keyword("Set Apprise Attachments")
-    def set_apprise_attachments(self, apprise_attachments: object):
+    @keyword("Set Attachments")
+    def set_attachments(self, attachments: object):
         logger.debug(msg="Setting 'attachments' attribute")
-        self.__apprise_clients = self.__transform_apprise_attachments(
-            apprise_attachments=apprise_attachments
+        self.__attachments = self.__transform_apprise_attachments(
+            attachments=attachments
         )
 
-    @keyword("Add Apprise Client")
-    def add_apprise_client(self, apprise_client: str):
-        logger.debug(msg=f"Adding Apprise client '{apprise_client}'")
-        if apprise_client not in self.apprise_clients:
-            self.apprise_clients.append(apprise_client)
+    @keyword("Add Client")
+    def add_client(self, client: str):
+        logger.debug(msg=f"Adding Apprise client '{client}'")
+        if client not in self.clients:
+            self.clients.append(client)
 
-    @keyword("Add Apprise Attachment")
-    def add_apprise_attachment(self, apprise_attachment: str):
-        logger.debug(msg=f"Adding Apprise attachment '{apprise_attachment}'")
-        if apprise_attachment not in self.apprise_attachment:
-            self.apprise_attachments.append(apprise_attachment)
+    @keyword("Add Attachment")
+    def add_attachment(self, attachment: str):
+        logger.debug(msg=f"Adding attachment '{attachment}'")
+        if attachment not in self.attachment:
+            self.attachments.append(attachment)
 
-    @keyword("Remove Apprise Client")
-    def remove_apprise_client(self, apprise_client: str):
-        logger.debug(msg=f"Removing Apprise client '{apprise_client}' (if present)")
-        if apprise_client in self.apprise_clients:
-            self.apprise_clients.remove(apprise_client)
+    @keyword("Remove Client")
+    def remove_client(self, client: str):
+        logger.debug(msg=f"Removing client '{client}' (if present)")
+        if client in self.clients:
+            self.clients.remove(client)
 
-    @keyword("Remove Apprise Attachment")
-    def remove_apprise_attachment(self, apprise_attachment: str):
-        logger.debug(
-            msg=f"Adding Apprise attachment '{apprise_attachment}' (if present)"
-        )
-        if apprise_attachment in self.apprise_attachment:
-            self.apprise_attachments.remove(apprise_attachment)
+    @keyword("Remove Attachment")
+    def remove_attachment(self, attachment: str):
+        logger.debug(msg=f"Removing attachment '{attachment}' (if present)")
+        if attachment in self.attachment:
+            self.attachments.remove(attachment)
 
-    @keyword("Clear Apprise Clients")
-    def clear_apprise_clients(self):
-        logger.debug(msg=f"Clearing all Apprise clients")
-        self.apprise_clients.clear()
+    @keyword("Clear All Clients")
+    def clear_all_clients(self):
+        logger.debug(msg="Clearing all clients")
+        self.clients.clear()
 
-    @keyword("Clear Apprise Attachments")
-    def clear_apprise_attachments(self):
-        logger.debug(msg=f"Clearing all Apprise Attachments")
-        self.apprise_attachments.clear()
+    @keyword("Clear All Attachments")
+    def clear_all_attachments(self):
+        logger.debug(msg=f"Clearing all Attachments")
+        self.attachments.clear()
 
     @keyword("Create Apprise Instance")
     def create_apprise_instance(self):
-        self.apprise_instance = apprise.Apprise()
+        self.instance = apprise.Apprise()
 
     @keyword("Send Apprise Message")
     def send_apprise_message(
         self,
-        apprise_title: str = None,
-        apprise_body: str = None,
-        apprise_clients: str = None,
-        apprise_attachments: list = None,
+        title: str = None,
+        body: str = None,
+        clients=None,
+        attachments=None,
     ):
-        if not self.apprise_instance:
+        if not self.instance:
             logger.debug(msg="Apprise instance not defined; creating it for the user")
-            self.apprise_instance = apprise.Apprise()
+            self.instance = apprise.Apprise()
 
         # clear everything that we have in our instance
-        self.apprise_instance.clear()
+        self.instance.clear()
 
         # If user has submitted clients, discard our list
         # and replace it with the user's list
-        if apprise_clients:
-            self.apprise_clients = self.__transform_apprise_clients(apprise_clients)
+        if clients:
+            self.clients = self.__transform_apprise_clients(clients)
 
         # If user has submitted attachments, discard our list
         # and replace it with the user's list
-        if apprise_attachments:
-            self.apprise_attachments = self.__transform_apprise_attachments(apprise_attachments)
+        if attachments:
+            self.attachments = self.__transform_apprise_attachments(attachments)
 
         # Attach the clients
-        for client in self.apprise_clients:
+        for client in self.clients:
             logger.debug(msg=f"Attaching client '{client}'")
-            self.apprise_instance.add(client)
+            self.instance.add(client)
 
         # Prepare the attachments (if present at all)
-        self.apprise_attachments = (
-            copy.deepcopy(apprise_attachments)
-            if apprise_attachments
-            else copy.deepcopy(self.apprise_attachments)
+        self.attachments = (
+            copy.deepcopy(attachments)
+            if attachments
+            else copy.deepcopy(self.attachments)
         )
 
         # Update title and body in case the user has submitted new values
-        self.apprise_title = apprise_title if apprise_title else self.apprise_title
-        self.apprise_body = apprise_body if apprise_body else self.apprise_body
+        self.title = title if title else self.title
+        self.body = body if body else self.body
 
         # send the content to Apprise
         logger.debug(msg="Sending message")
-        result = self.apprise_instance.notify(
-            title=self.apprise_title,
-            body=self.apprise_body,
-            attach=self.apprise_attachments,
+
+        result = self.instance.notify(
+            title=self.title,
+            body=self.body,
+            attach=self.attachments,
         )
 
-        if not result:
-            return "FAIL"
-        else:
-            return "PASS"
 
 if __name__ == "__main__":
     pass
