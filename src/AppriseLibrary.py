@@ -24,6 +24,7 @@ from robot.api.logger import librarylogger as robotlogger
 import apprise
 import logging
 import copy
+import os.path
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s %(module)s -%(levelname)s- %(message)s"
@@ -43,6 +44,7 @@ class AppriseLibrary:
     DEFAULT_CLIENTS = []
     DEFAULT_ATTACHMENTS = []
     DEFAULT_DELIMITER = ","
+    DEFAULT_CONFIG_FILE = ""
 
     # Class-internal Apprise parameters
     __title = None
@@ -50,21 +52,24 @@ class AppriseLibrary:
     __clients = None
     __attachments = None
     __delimiter = None
+    __config_file = None
 
-    # This is our Apprise object
-    __instance = None
+    #__instance represents the Apprise core object
+    __apprise_instance = None
 
     def __init__(
         self,
+        config_file = DEFAULT_CONFIG_FILE,
         title: str = DEFAULT_TITLE,
         body: int = DEFAULT_BODY,
         clients: list = DEFAULT_CLIENTS,
         attachments: list = DEFAULT_ATTACHMENTS,
         delimiter: str = DEFAULT_DELIMITER,
     ):
+        self.__config_file = config_file
         self.__title = title
         self.__body = body
-        self.__instance = None
+        self.__apprise_instance = None
         self.__delimiter = delimiter
         self.__clients = self.__transform_apprise_clients(clients=clients)
         self.__attachments = self.__transform_apprise_attachments(
@@ -101,6 +106,10 @@ class AppriseLibrary:
     # cause an error but the keyword will not be recognized later on
     # Therefore, Robot-specific "getter" keywords are required
     @property
+    def config_file(self):
+        return self.__config_file
+
+    @property
     def title(self):
         return self.__title
 
@@ -122,13 +131,19 @@ class AppriseLibrary:
 
     @property
     def instance(self):
-        return self.__instance
+        return self.__apprise_instance
 
     # Python "Setter" methods
     #
     # Note that adding an additional Robot decorator (@keyword) will not
     # cause an error but the keyword will not be recognized later on
     # Therefore, Robot-specific "setter" keywords are required
+
+    @config_file.setter
+    def config_file(self, config_file: str):
+        if not config_file:
+            raise ValueError("No value for 'config_file' has been specified")
+        self.__config_file = config_file
 
     @title.setter
     def title(self, title: str):
@@ -164,15 +179,19 @@ class AppriseLibrary:
             raise ValueError("No value for 'clients' has been specified")
         self.__clients = self.__transform_apprise_clients(clients=clients)
 
-    @instance.setter
-    def instance(self, instance: object):
+    @apprise_instance.setter
+    def apprise_instance(self, apprise_instance: object):
         # Value can be "None". Therefore,
         # we simply accept the value "as is"
-        self.__instance = instance
+        self.__apprise_instance = apprise_instance
 
     #
     # Robot-specific "getter" keywords
     #
+    @keyword("Get Config File")
+    def get_config_file(self):
+        return self.config_file
+
     @keyword("Get Title")
     def get_title(self):
         return self.title
@@ -196,6 +215,11 @@ class AppriseLibrary:
     #
     # Robot-specific "setter" keywords
     #
+    @keyword("Set Config File")
+    def set_config_file(self, config_file: str = None):
+        logger.debug(msg="Setting 'config_file' attribute")
+        self.config_file = config_file
+
     @keyword("Set Title")
     def set_title(self, title: str = None):
         logger.debug(msg="Setting 'title' attribute")
@@ -259,7 +283,7 @@ class AppriseLibrary:
 
     @keyword("Create Apprise Instance")
     def create_apprise_instance(self):
-        self.instance = apprise.Apprise()
+        self.apprise_instance = apprise.Apprise()
 
     @keyword("Send Apprise Message")
     def send_apprise_message(
@@ -268,13 +292,28 @@ class AppriseLibrary:
         body: str = None,
         clients=None,
         attachments=None,
+        config_file=None,
     ):
-        if not self.instance:
+        _apprise_config=None
+
+        if not self.apprise_instance:
             logger.debug(msg="Apprise instance not defined; creating it for the user")
-            self.instance = apprise.Apprise()
+            self.apprise_instance = apprise.Apprise()
+
+        # Overwrite the initial config file name in case the user has
+        # specified a different one
+        if config_file and config_file != "":
+            self.config_file = config_file
+
+        # Now check if we need to create the Apprise config object
+        if self.config_file and self.config_file != "":
+            if os.path.isfile(self.config_file):
+                _apprise_config = self.apprise_instance.AppriseConfig()
+            else:
+                logger.debug(msg=f"Config file '{self.config_file}' does not exist; ignoring config file reference")
 
         # clear everything that we have in our instance
-        self.instance.clear()
+        self.apprise_instance.clear()
 
         # If user has submitted clients, discard our list
         # and replace it with the user's list
@@ -287,13 +326,20 @@ class AppriseLibrary:
             self.attachments = self.__transform_apprise_attachments(attachments)
 
         # Check if we have received at least one client
-        if len(self.clients) < 1:
+        if len(self.clients) < 1 and not apprise_config:
             raise ValueError("You need to specify at least one target client")
 
         # Attach the clients
+        # If we have no config file, then add the clients directly
+        # otherwise, add the config data to the config object and
+        # later on add the config object to Apprise
         for client in self.clients:
-            logger.debug(msg=f"Attaching client '{client}'")
-            self.instance.add(client)
+            if not add_via_config_file:
+                logger.debug(msg=f"Attaching client '{client}'")
+                self.apprise_instance.add(client)
+            else:
+                logger.debug(msg=f"Attaching client '{client}' on top of config file configuration")
+                _apprise_config.add(client)
 
         # Prepare the attachments (if present at all)
         self.attachments = (
@@ -302,6 +348,10 @@ class AppriseLibrary:
             else copy.deepcopy(self.attachments)
         )
 
+        # add the config object in case we have enriched it
+        if _apprise_config:
+            self.apprise_instance.add(_apprise_config)
+
         # Update title and body in case the user has submitted new values
         self.title = title if title else self.title
         self.body = body if body else self.body
@@ -309,7 +359,7 @@ class AppriseLibrary:
         # send the content to Apprise
         logger.debug(msg="Sending message")
 
-        result = self.instance.notify(
+        result = self.apprise_instance.notify(
             title=self.title,
             body=self.body,
             attach=self.attachments,
