@@ -25,6 +25,7 @@ import apprise
 import logging
 import copy
 import os.path
+from enum import Enum
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s %(module)s -%(levelname)s- %(message)s"
@@ -33,6 +34,15 @@ logger = logging.getLogger(__name__)
 
 __version__ = "0.1.0"
 __author__ = "Joerg Schultze-Lutter"
+
+
+# Enum which contains Apprise's notification types
+# Yes - they are strings but let's stay future proof here
+class AppriseNotificationType(Enum):
+    info: apprise.NotifyType.INFO
+    success: apprise.NotifyType.SUCCESS
+    warning: apprise.NotifyType.WARNING
+    failure: apprise.NotifyType.FAILURE
 
 
 @library(scope="GLOBAL", auto_keywords=True)
@@ -45,6 +55,7 @@ class AppriseLibrary:
     DEFAULT_ATTACHMENTS = []
     DEFAULT_DELIMITER = ","
     DEFAULT_CONFIG_FILE = ""
+    DEFAULT_NOTIFY_TYPE = apprise.NotifyType.INFO
 
     # Class-internal Apprise parameters
     __title = None
@@ -53,18 +64,20 @@ class AppriseLibrary:
     __attachments = None
     __delimiter = None
     __config_file = None
+    __notify_type = None
 
-    #__instance represents the Apprise core object
+    # __instance represents the Apprise core object
     __apprise_instance = None
 
     def __init__(
         self,
-        config_file = DEFAULT_CONFIG_FILE,
+        config_file=DEFAULT_CONFIG_FILE,
         title: str = DEFAULT_TITLE,
         body: int = DEFAULT_BODY,
         clients: list = DEFAULT_CLIENTS,
         attachments: list = DEFAULT_ATTACHMENTS,
         delimiter: str = DEFAULT_DELIMITER,
+        notify_type: str = DEFAULT_NOTIFY_TYPE,
     ):
         self.__config_file = config_file
         self.__title = title
@@ -75,6 +88,7 @@ class AppriseLibrary:
         self.__attachments = self.__transform_apprise_attachments(
             attachments=attachments
         )
+        self.__notify_type = notify_type
 
     def __transform_apprise_clients(self, clients: object):
         # we will either accept a list item or a string
@@ -133,6 +147,10 @@ class AppriseLibrary:
     def instance(self):
         return self.__apprise_instance
 
+    @property
+    def notify_type(self):
+        return self.__apprise_instance
+
     # Python "Setter" methods
     #
     # Note that adding an additional Robot decorator (@keyword) will not
@@ -185,6 +203,19 @@ class AppriseLibrary:
         # we simply accept the value "as is"
         self.__apprise_instance = apprise_instance
 
+    @notify_type.setter
+    def notify_type(self, notify_type: str):
+        if not notify_type:
+            raise ValueError("No value for 'notify_type' has been specified")
+
+        # Convert to lower case and check if it exists in our enum
+        __nt = notify_type.lower()
+        if __nt not in AppriseNotificationType.__members__:
+            raise ValueError("Invalid value for 'notify_type' has been specified")
+
+        # enum exists, let's get the value
+        self.__notify_type = AppriseNotificationType[__nt].value
+
     #
     # Robot-specific "getter" keywords
     #
@@ -212,6 +243,10 @@ class AppriseLibrary:
     def get_attachments(self):
         return self.attachments
 
+    @keyword("Get Notify Type")
+    def get_notify_type(self):
+        return self.notify_type
+
     #
     # Robot-specific "setter" keywords
     #
@@ -234,6 +269,18 @@ class AppriseLibrary:
     def set_delimiter(self, delimiter: str = None):
         logger.debug(msg="Setting 'delimiter' attribute")
         self.delimiter = delimiter
+
+    @keyword("Set Notify Type")
+    def set_notify_type(self, notify_type: str = None):
+
+        # Convert to lower case and check if it exists in our enum
+        __nt = notify_type.lower()
+        if __nt not in AppriseNotificationType.__members__:
+            raise ValueError("Invalid value for 'notify_type' has been specified")
+
+        # enum exists, let's get the value
+        logger.debug(msg="Setting 'delimiter' attribute")
+        self.notify_type = AppriseNotificationType[__nt].value
 
     @keyword("Set Clients")
     def set_clients(self, clients: object):
@@ -293,8 +340,9 @@ class AppriseLibrary:
         clients=None,
         attachments=None,
         config_file=None,
+        notification_type=None,
     ):
-        _apprise_config=None
+        _apprise_config = None
 
         if not self.apprise_instance:
             logger.debug(msg="Apprise instance not defined; creating it for the user")
@@ -310,7 +358,9 @@ class AppriseLibrary:
             if os.path.isfile(self.config_file):
                 _apprise_config = self.apprise_instance.AppriseConfig()
             else:
-                logger.debug(msg=f"Config file '{self.config_file}' does not exist; ignoring config file reference")
+                logger.debug(
+                    msg=f"Config file '{self.config_file}' does not exist; ignoring config file reference"
+                )
 
         # clear everything that we have in our instance
         self.apprise_instance.clear()
@@ -338,7 +388,9 @@ class AppriseLibrary:
                 logger.debug(msg=f"Attaching client '{client}'")
                 self.apprise_instance.add(client)
             else:
-                logger.debug(msg=f"Attaching client '{client}' on top of config file configuration")
+                logger.debug(
+                    msg=f"Attaching client '{client}' on top of config file configuration"
+                )
                 _apprise_config.add(client)
 
         # Prepare the attachments (if present at all)
@@ -363,6 +415,7 @@ class AppriseLibrary:
             title=self.title,
             body=self.body,
             attach=self.attachments,
+            notify_type=notification_type,
         )
         return result
 
