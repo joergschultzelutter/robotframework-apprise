@@ -38,17 +38,22 @@ All ``Set ...`` keywords provide corresponding ``Get ...`` keywords.
 
 Examples:
 
-        # Send a message with one client and a List which contains our images
-        @{IMAGE_LIST}=          Create List     http://www.mysite.com/image1.jpg    http://www.mysite.com/image2.jpg
-        Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    clients=<apprise_client>     attachments=${IMAGE_LIST}
+```robot
+# Send a message with one client and a List which contains our images
+@{IMAGE_LIST}=          Create List     http://www.mysite.com/image1.jpg    http://www.mysite.com/image2.jpg
+Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    clients=<apprise_client>     attachments=${IMAGE_LIST}
+```
 
-        # Send a message with one client. Our attachments use a comma-separated string (default)
-        Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    clients=<apprise_client>     attachments=http://www.mysite.com/image1.jpg,http://www.mysite.com/image2.jpg
+```robot
+# Send a message with one client. Our attachments use a comma-separated string (default)
+Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    clients=<apprise_client>     attachments=http://www.mysite.com/image1.jpg,http://www.mysite.com/image2.jpg
+```
 
-        # Send a message with one client. Our attachments use a custom delimiter ^
-        Set Delimiter            ^
-        Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    clients=<apprise_client>     attachments=http://www.mysite.com/image1.jpg^http://www.mysite.com/image2.jpg
-
+```robot
+# Send a message with one client. Our attachments use a custom delimiter ^
+Set Delimiter            ^
+Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    clients=<apprise_client>     attachments=http://www.mysite.com/image1.jpg^http://www.mysite.com/image2.jpg
+```
 
 ## Known issues
 
