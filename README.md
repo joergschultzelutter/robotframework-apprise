@@ -23,12 +23,16 @@ In order to run the example code, you need to provide at least one valid target 
 |``Send Apprise Message``|Sends a push message through Apprise|
 |``Set Clients`` and ``Set Attachments``|Sets a new value list and replace the previous values|
 |``Add Client`` and ``Add Attachment``|Adds a value to an existing list|
-|``Remove Client`` and ``Remove Attachment``|Removes a value from an existing list (if present)|
+|``Remove Client`` and ``Remove Attachment``|Removes a value from an existing list (if present). Trying to remove a non-existing entry will NOT result in an error|
 |``Clear All Clients`` and ``Clear All Attachments``|Completely removes the current values from the respective list|
 |``Set Delimiter``|Optional reconfiguration of this Robot Framework library's delimiter. See details below|
+|``Set Notify Type``|Sets one of Apprise's [supported notify types](https://github.com/caronc/apprise/wiki/Development_API#message-types-and-themes). Valid values are ``info``,``success``,``warning``, and ``failure``. Default notify type is ``info``|
+|``Set Body Format``|Sets one of Apprise's [supported body formats](https://github.com/caronc/apprise/wiki/Development_API#notify--send-notifications). Valid values are ``html``,``text``, and ``markdown``. Default body format is ``html``|
 
 
-All ``clients`` and ``attachments`` options can be passed as a ``List`` type variable or as a string. If you use a string, the default delimiter is a comma ``,``. In case you need to use a different delimiter, use the ``Set Delimiter`` keyword.
+All ``clients`` and ``attachments`` options can be passed as a ``List`` type variable or as a ``string``. If you use a ``string``, the default delimiter is a comma ``,``. In case you need to use a different delimiter for your string, use the ``Set Delimiter`` keyword.
+
+All ``Set ...`` keywords provide corresponding ``Get ...`` keywords.
 
 ``Attachments`` are purely optional. Providing at least one ``Client`` is mandatory, though. Both ``Attachments`` and ``Clients`` can either be provided as a ``List`` item or as a separated string.
 
@@ -49,4 +53,4 @@ Examples:
 ## Known issues
 
 - This library uses Apprise's default async behavior. Currently, you cannot send messages in a synchronous way.
-- The current version of this library does not permit you to set the target format (text, HTML). It uses Apprise's default format which is HTML.
+- The current version of this library does not support Apprise's whole feature set. Options such as tagging are not implemented.

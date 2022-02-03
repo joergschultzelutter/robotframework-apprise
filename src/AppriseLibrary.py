@@ -45,6 +45,13 @@ class AppriseNotificationType(Enum):
     failure = apprise.NotifyType.FAILURE
 
 
+# Enum which contains Apprise's supported message body formats
+class AppriseBodyFormat(Enum):
+    html = apprise.NotifyFormat.HTML
+    text = apprise.NotifyFormat.TEXT
+    markdown = apprise.NotifyFormat.MARKDOWN
+
+
 @library(scope="GLOBAL", auto_keywords=True)
 class AppriseLibrary:
 
@@ -56,6 +63,7 @@ class AppriseLibrary:
     DEFAULT_DELIMITER = ","
     DEFAULT_CONFIG_FILE = ""
     DEFAULT_NOTIFY_TYPE = apprise.NotifyType.INFO
+    DEFAULT_BODY_FORMAT = apprise.NotifyFormat.HTML
 
     # Class-internal Apprise parameters
     __title = None
@@ -65,6 +73,7 @@ class AppriseLibrary:
     __delimiter = None
     __config_file = None
     __notify_type = None
+    __body_format = None
 
     # __instance represents the Apprise core object
     __apprise_instance = None
@@ -78,6 +87,7 @@ class AppriseLibrary:
         attachments: list = DEFAULT_ATTACHMENTS,
         delimiter: str = DEFAULT_DELIMITER,
         notify_type: str = DEFAULT_NOTIFY_TYPE,
+        body_format: str = DEFAULT_BODY_FORMAT,
     ):
         self.__config_file = config_file
         self.__title = title
@@ -89,6 +99,7 @@ class AppriseLibrary:
             attachments=attachments
         )
         self.__notify_type = self.__transform_notify_type(notify_type=notify_type)
+        self.__body_format = self.__transform_body_format(body_format=body_format)
 
     def __transform_apprise_clients(self, clients: object):
         # we will either accept a list item or a string
@@ -127,6 +138,19 @@ class AppriseLibrary:
         # enum exists, let's get the value
         return AppriseNotificationType[__nt].value
 
+    def __transform_body_format(self, body_format: object):
+
+        if not body_format:
+            raise ValueError("No value for 'body_format' has been specified")
+
+        # Convert to lower case and check if it exists in our enum
+        __bf = body_format.lower()
+        if __bf not in AppriseBodyFormat.__members__:
+            raise ValueError("Unsupported value for 'body_format' has been specified")
+
+        # enum exists, let's get the value
+        return AppriseBodyFormat[__bf].value
+
     # Python "Getter" methods
     #
     # Note that adding an additional Robot decorator (@keyword) will not
@@ -163,6 +187,10 @@ class AppriseLibrary:
     @property
     def notify_type(self):
         return self.__notify_type
+
+    @property
+    def body_format(self):
+        return self.__body_format
 
     # Python "Setter" methods
     #
@@ -218,6 +246,10 @@ class AppriseLibrary:
     def notify_type(self, notify_type: str):
         self.__notify_type = self.__transform_notify_type(notify_type=notify_type)
 
+    @body_format.setter
+    def body_format(self, body_format: str):
+        self.__body_format = self.__transform_body_format(body_format=body_format)
+
     #
     # Robot-specific "getter" keywords
     #
@@ -249,6 +281,10 @@ class AppriseLibrary:
     def get_notify_type(self):
         return self.notify_type
 
+    @keyword("Get Body Format")
+    def get_body_format(self):
+        return self.body_format
+
     #
     # Robot-specific "setter" keywords
     #
@@ -274,15 +310,11 @@ class AppriseLibrary:
 
     @keyword("Set Notify Type")
     def set_notify_type(self, notify_type: str = None):
+        self.notify_type = self.__transform_notify_type(notify_type=notify_type)
 
-        # Convert to lower case and check if it exists in our enum
-        __nt = notify_type.lower()
-        if __nt not in AppriseNotificationType.__members__:
-            raise ValueError("Invalid value for 'notify_type' has been specified")
-
-        # enum exists, let's get the value
-        logger.debug(msg="Setting 'delimiter' attribute")
-        self.notify_type = AppriseNotificationType[__nt].value
+    @keyword("Set Body Format")
+    def set_body_format(self, body_format: str = None):
+        self.body_format = self.__transform_body_format(body_format=body_format)
 
     @keyword("Set Clients")
     def set_clients(self, clients: object):
@@ -342,10 +374,14 @@ class AppriseLibrary:
         clients=None,
         attachments=None,
         config_file=None,
-        notification_type=None,
+        notify_type=None,
+        body_format=None,
     ):
+        # This is our Apprise config item in case
+        # the user has specified a config file
         _apprise_config = None
 
+        # We don't have an instance yet?
         if not self.apprise_instance:
             logger.debug(msg="Apprise instance not defined; creating it for the user")
             self.apprise_instance = apprise.Apprise()
@@ -376,6 +412,14 @@ class AppriseLibrary:
         # and replace it with the user's list
         if attachments:
             self.attachments = self.__transform_apprise_attachments(attachments)
+
+        # If user has submitted a notify type, look it up
+        if notify_type:
+            self.notify_type = self.__transform_notify_type(notify_type=notify_type)
+
+        # If user has submitted a body format, look it up
+        if body_format:
+            self.body_format = self.__transform_body_format(body_format=body_format)
 
         # Check if we have received at least one client
         if len(self.clients) < 1 and not apprise_config:
@@ -411,21 +455,24 @@ class AppriseLibrary:
         self.body = body if body else self.body
 
         # send the content to Apprise
-        logger.debug(msg="Sending message")
+        logger.debug(
+            msg=f"Sending message with type '{self.notify_type}' and format '{self.body_format}'"
+        )
 
         result = self.apprise_instance.notify(
             title=self.title,
             body=self.body,
             attach=self.attachments,
-            notify_type=notification_type,
+            notify_type=self.notify_type,
+            body_format=self.body_format,
         )
         return result
 
 
 if __name__ == "__main__":
-    appr = AppriseLibrary(
-        body="My body", title="My title", clients="SECRET_CLIENT_ID", notify_type="info"
+    appr = AppriseLibrary(clients="MEIN_SECRET")
+    appr.send_apprise_message(
+        body="My Body", title="My Title", notify_type="warning", body_format="markdown"
     )
-    appr.send_apprise_message()
 
     pass
