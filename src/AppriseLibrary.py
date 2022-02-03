@@ -39,10 +39,10 @@ __author__ = "Joerg Schultze-Lutter"
 # Enum which contains Apprise's notification types
 # Yes - they are strings but let's stay future proof here
 class AppriseNotificationType(Enum):
-    info: apprise.NotifyType.INFO
-    success: apprise.NotifyType.SUCCESS
-    warning: apprise.NotifyType.WARNING
-    failure: apprise.NotifyType.FAILURE
+    info = apprise.NotifyType.INFO
+    success = apprise.NotifyType.SUCCESS
+    warning = apprise.NotifyType.WARNING
+    failure = apprise.NotifyType.FAILURE
 
 
 @library(scope="GLOBAL", auto_keywords=True)
@@ -88,7 +88,7 @@ class AppriseLibrary:
         self.__attachments = self.__transform_apprise_attachments(
             attachments=attachments
         )
-        self.__notify_type = notify_type
+        self.__notify_type = self.__transform_notify_type(notify_type=notify_type)
 
     def __transform_apprise_clients(self, clients: object):
         # we will either accept a list item or a string
@@ -113,6 +113,19 @@ class AppriseLibrary:
             return attachments.split(self.delimiter)
         else:
             return attachments
+
+    def __transform_notify_type(self, notify_type: object):
+
+        if not notify_type:
+            raise ValueError("No value for 'notify_type' has been specified")
+
+        # Convert to lower case and check if it exists in our enum
+        __nt = notify_type.lower()
+        if __nt not in AppriseNotificationType.__members__:
+            raise ValueError("Unsupported value for 'notify_type' has been specified")
+
+        # enum exists, let's get the value
+        return AppriseNotificationType[__nt].value
 
     # Python "Getter" methods
     #
@@ -144,12 +157,12 @@ class AppriseLibrary:
         return self.__attachments
 
     @property
-    def instance(self):
+    def apprise_instance(self):
         return self.__apprise_instance
 
     @property
     def notify_type(self):
-        return self.__apprise_instance
+        return self.__notify_type
 
     # Python "Setter" methods
     #
@@ -193,8 +206,6 @@ class AppriseLibrary:
 
     @clients.setter
     def clients(self, clients: object):
-        if not clients:
-            raise ValueError("No value for 'clients' has been specified")
         self.__clients = self.__transform_apprise_clients(clients=clients)
 
     @apprise_instance.setter
@@ -205,16 +216,7 @@ class AppriseLibrary:
 
     @notify_type.setter
     def notify_type(self, notify_type: str):
-        if not notify_type:
-            raise ValueError("No value for 'notify_type' has been specified")
-
-        # Convert to lower case and check if it exists in our enum
-        __nt = notify_type.lower()
-        if __nt not in AppriseNotificationType.__members__:
-            raise ValueError("Invalid value for 'notify_type' has been specified")
-
-        # enum exists, let's get the value
-        self.__notify_type = AppriseNotificationType[__nt].value
+        self.__notify_type = self.__transform_notify_type(notify_type=notify_type)
 
     #
     # Robot-specific "getter" keywords
@@ -384,7 +386,7 @@ class AppriseLibrary:
         # otherwise, add the config data to the config object and
         # later on add the config object to Apprise
         for client in self.clients:
-            if not add_via_config_file:
+            if not _apprise_config:
                 logger.debug(msg=f"Attaching client '{client}'")
                 self.apprise_instance.add(client)
             else:
@@ -421,4 +423,9 @@ class AppriseLibrary:
 
 
 if __name__ == "__main__":
+    appr = AppriseLibrary(
+        body="My body", title="My title", clients="SECRET_CLIENT_ID", notify_type="info"
+    )
+    appr.send_apprise_message()
+
     pass
