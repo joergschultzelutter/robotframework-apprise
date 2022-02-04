@@ -470,9 +470,4 @@ class AppriseLibrary:
 
 
 if __name__ == "__main__":
-    appr = AppriseLibrary(clients="MEIN_SECRET")
-    appr.send_apprise_message(
-        body="My Body", title="My Title", notify_type="warning", body_format="markdown"
-    )
-
     pass
