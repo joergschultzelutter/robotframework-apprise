@@ -1,5 +1,5 @@
 # robotframework-apprise
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ```robotframework-apprise``` is a [Robot Framework](https://www.robotframework.org) keyword collection for the [Apprise](https://github.com/caronc/apprise) push message library. It enables Robot Framework users to send push/email messages to every message service supported by Apprise.
 
@@ -28,11 +28,14 @@ In order to run the example code, you need to provide at least one valid target 
 |``Set Delimiter``|Optional reconfiguration of this Robot Framework library's delimiter. See details below|
 |``Set Notify Type``|Sets one of Apprise's [supported notify types](https://github.com/caronc/apprise/wiki/Development_API#message-types-and-themes). Valid values are ``info``,``success``,``warning``, and ``failure``. Default notify type is ``info``|
 |``Set Body Format``|Sets one of Apprise's [supported body formats](https://github.com/caronc/apprise/wiki/Development_API#notify--send-notifications). Valid values are ``html``,``text``, and ``markdown``. Default body format is ``html``|
+|``Set Config File``|Allows you to specify a single Apprise [config file](https://github.com/caronc/apprise#configuration-files) in YAML or Text format |
 
 
 All ``clients`` and ``attachments`` options can be passed as a ``List`` type variable or as a ``string``. If you use a ``string``, the default delimiter is a comma ``,``. In case you need to use a different delimiter for your string, use the ``Set Delimiter`` keyword.
 
 All ``Set ...`` keywords provide corresponding ``Get ...`` keywords.
+
+If you specify ``Client`` settings additionally to a ``Config File``, the library will honor both settings.
 
 ``Attachments`` are purely optional. Providing at least one ``Client`` is mandatory, though. Both ``Attachments`` and ``Clients`` can either be provided as a ``List`` item or as a separated string.
 
@@ -55,7 +58,14 @@ Set Delimiter            ^
 Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    clients=<apprise_client>     attachments=http://www.mysite.com/image1.jpg^http://www.mysite.com/image2.jpg
 ```
 
+```robot
+# Send a message with one client and a List which contains our images
+@{IMAGE_LIST}=          Create List     http://www.mysite.com/image1.jpg    http://www.mysite.com/image2.jpg
+${CONFIG_FILE}          config.yaml
+Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    config_file=${CONFIG_FILE}     attachments=${IMAGE_LIST}
+```
+
+
 ## Known issues
 
-- This library uses Apprise's default async behavior. Currently, you cannot send messages in a synchronous way.
-- The current version of this library does not support Apprise's whole feature set. Options such as tagging are not implemented.
+- The current version of this library does not support Apprise's whole feature set. Options such as tagging are not implemented (but may work if you use a [config file](https://github.com/caronc/apprise#configuration-files)-based setting)

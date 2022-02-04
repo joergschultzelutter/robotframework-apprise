@@ -32,7 +32,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Joerg Schultze-Lutter"
 
 
@@ -393,8 +393,12 @@ class AppriseLibrary:
 
         # Now check if we need to create the Apprise config object
         if self.config_file and self.config_file != "":
+            # Does the file exist?
             if os.path.isfile(self.config_file):
-                _apprise_config = self.apprise_instance.AppriseConfig()
+                # File exists; create the config object and then
+                # add the config file to the config object
+                _apprise_config = apprise.AppriseConfig()
+                _apprise_config.add(self.config_file)
             else:
                 logger.debug(
                     msg=f"Config file '{self.config_file}' does not exist; ignoring config file reference"
@@ -422,11 +426,13 @@ class AppriseLibrary:
             self.body_format = self.__transform_body_format(body_format=body_format)
 
         # Check if we have received at least one client
-        if len(self.clients) < 1 and not apprise_config:
-            raise ValueError("You need to specify at least one target client")
+        if (self.clients and len(self.clients) < 1) and not _apprise_config:
+            raise ValueError(
+                "You need to specify at least one target client or an Apprise config file"
+            )
 
-        # Attach the clients
-        # If we have no config file, then add the clients directly
+        # Process our single client URLs
+        # If we have no config file/object , add the clients directly to Apprise
         # otherwise, add the config data to the config object and
         # later on add the config object to Apprise
         for client in self.clients:
