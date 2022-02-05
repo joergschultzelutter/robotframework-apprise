@@ -61,7 +61,7 @@ Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to App
 ```robot
 # Send a message with one client and a List which contains our images
 @{IMAGE_LIST}=          Create List     http://www.mysite.com/image1.jpg    http://www.mysite.com/image2.jpg
-${CONFIG_FILE}          config.yaml
+Set Test Variable       ${CONFIG_FILE}  config.yaml
 Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    config_file=${CONFIG_FILE}     attachments=${IMAGE_LIST}
 ```
 
