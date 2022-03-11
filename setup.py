@@ -16,7 +16,7 @@ if __name__ == "__main__":
 	setup(
 		name="robotframework-apprise",
 		version=VERSION,
-		description="Robot Framework keywords for apprise push messaging Python library, https://github.com/caronc/apprise",
+		description="Robot Framework keywords for Apprise push messaging Python library, https://github.com/caronc/apprise",
 		long_description=long_description,
 		long_description_content_type="text/markdown",
 		author="Joerg Schultze-Lutter",
