@@ -3,7 +3,7 @@
 # https://www.github.com/joergschultzelutter/robotframework-apprise
 
 *** Settings ***
-Library			  AppriseLibrary.py
+Library			  AppriseLibrary
 
 *** Variables ***
 @{IMAGE_LIST}     https://miro.medium.com/max/553/1*wnMQPTmEsIq0TiRgfX4hig.png   https://raw.githubusercontent.com/caronc/apprise/master/apprise/assets/themes/default/apprise-logo.png
