@@ -3,12 +3,13 @@
 
 ```robotframework-apprise``` is a [Robot Framework](https://www.robotframework.org) keyword collection for the [Apprise](https://github.com/caronc/apprise) push message library. It enables Robot Framework users to send push/email messages to every message service supported by Apprise.
 
-![transmit](img/message.jpg)
+![transmit](https://github.com/joergschultzelutter/robotframework-apprise/blob/master/img/message.jpg)
 
 ## Installation
 
-- clone repository
-- ``pip install -r dependencies.txt``
+The easiest way is to install this package is from pypi:
+
+    pip install robotframework-apprise
 
 ## Robot Framework Library Example
 
