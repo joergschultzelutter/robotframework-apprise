@@ -32,7 +32,7 @@ if __name__ == "__main__":
 			"Operating System :: OS Independent",
 			"Development Status :: 4 - Beta",
 			"Framework :: Robot Framework",
-			"Topic :: Communications :: Notifications",
+			"Topic :: Software Development :: Testing",
 		],
 		license="GNU General Public License v3 (GPLv3)",
 		install_requires=["robotframework>=4.1.3", "apprise>=0.9.6"],
