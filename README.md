@@ -15,7 +15,7 @@ The easiest way is to install this package is from pypi:
 
 In order to run the example code, you need to provide at least one valid target messenger. Have a look at [Apprise's list of supported messengers](https://github.com/caronc/apprise/wiki)
 
-- [send_apprise_message.robot](src/send_apprise_message.robot)
+- [send_apprise_message.robot](https://github.com/joergschultzelutter/robotframework-apprise/test/send_apprise_message.robot)
 
 ## Library usage and supported keywords
 
