@@ -62,7 +62,7 @@ env:
 
   # relative path to your file, e.g.
   # ./src/MyLib/MyLib.py
-  SOURCE_FILE: ./src/AppriseLibrary/AppriseLibrary.yml
+  SOURCE_FILE: ./src/AppriseLibrary/AppriseLibrary.py
 
   # Regex pattern used for extracting the version data from your file
   # (usually, this does not need to be changed)
