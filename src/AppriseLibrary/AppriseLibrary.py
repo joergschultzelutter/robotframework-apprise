@@ -20,7 +20,6 @@
 #
 
 from robot.api.deco import library, keyword
-from robot.api.logger import librarylogger as robotlogger
 import apprise
 import logging
 import copy
@@ -32,7 +31,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 __author__ = "Joerg Schultze-Lutter"
 
 
@@ -58,9 +57,7 @@ class AppriseLibrary:
     # These are Apprise's default parameters
     DEFAULT_TITLE = ""
     DEFAULT_BODY = ""
-    DEFAULT_CLIENTS = []
-    DEFAULT_ATTACHMENTS = []
-    DEFAULT_DELIMITER = ","
+    DEFAULT_ATTACHMENT_DELIMITER = ","
     DEFAULT_CONFIG_FILE = ""
     DEFAULT_NOTIFY_TYPE = apprise.NotifyType.INFO
     DEFAULT_BODY_FORMAT = apprise.NotifyFormat.HTML
@@ -70,7 +67,7 @@ class AppriseLibrary:
     __body = None
     __clients = None
     __attachments = None
-    __delimiter = None
+    __attachment_delimiter = None
     __config_file = None
     __notify_type = None
     __body_format = None
@@ -83,9 +80,9 @@ class AppriseLibrary:
         config_file=DEFAULT_CONFIG_FILE,
         title: str = DEFAULT_TITLE,
         body: int = DEFAULT_BODY,
-        clients: list = DEFAULT_CLIENTS,
-        attachments: list = DEFAULT_ATTACHMENTS,
-        delimiter: str = DEFAULT_DELIMITER,
+        clients: list = None,
+        attachments: list = None,
+        attachment_delimiter: str = DEFAULT_ATTACHMENT_DELIMITER,
         notify_type: str = DEFAULT_NOTIFY_TYPE,
         body_format: str = DEFAULT_BODY_FORMAT,
     ):
@@ -93,7 +90,7 @@ class AppriseLibrary:
         self.__title = title
         self.__body = body
         self.__apprise_instance = None
-        self.__delimiter = delimiter
+        self.__attachment_delimiter = attachment_delimiter
         self.__clients = self.__transform_apprise_clients(clients=clients)
         self.__attachments = self.__transform_apprise_attachments(
             attachments=attachments
@@ -103,17 +100,21 @@ class AppriseLibrary:
 
     def __transform_apprise_clients(self, clients: object):
         # we will either accept a list item or a string
+        if not clients:
+            return []
         if not isinstance(clients, (list, str)):
             raise TypeError("Apprise 'clients' parameter can either be string or list")
 
         # if we deal with a string, split it up and return it as a list
         if isinstance(clients, str):
-            return clients.split(self.delimiter)
+            return clients.split(",")
         else:
             return clients
 
     def __transform_apprise_attachments(self, attachments: object):
         # we will either accept a list item or a string
+        if not attachments:
+            return []
         if not isinstance(attachments, (list, str)):
             raise TypeError(
                 "Apprise 'attachments' parameter can either be string or list"
@@ -121,11 +122,11 @@ class AppriseLibrary:
 
         # if we deal with a string, split it up and return it as a list
         if isinstance(attachments, str):
-            return attachments.split(self.delimiter)
+            return attachments.split(self.attachment_delimiter)
         else:
             return attachments
 
-    def __transform_notify_type(self, notify_type: object):
+    def __transform_notify_type(self, notify_type: str):
 
         if not notify_type:
             raise ValueError("No value for 'notify_type' has been specified")
@@ -138,7 +139,7 @@ class AppriseLibrary:
         # enum exists, let's get the value
         return AppriseNotificationType[__nt].value
 
-    def __transform_body_format(self, body_format: object):
+    def __transform_body_format(self, body_format: str):
 
         if not body_format:
             raise ValueError("No value for 'body_format' has been specified")
@@ -169,8 +170,8 @@ class AppriseLibrary:
         return self.__body
 
     @property
-    def delimiter(self):
-        return self.__delimiter
+    def attachment_delimiter(self):
+        return self.__attachment_delimiter
 
     @property
     def clients(self):
@@ -216,13 +217,13 @@ class AppriseLibrary:
             raise ValueError("No value for 'body' has been specified")
         self.__body = body
 
-    @delimiter.setter
-    def delimiter(self, delimiter: str):
-        if not delimiter:
-            raise ValueError("No value for 'delimiter' has been specified")
-        if len(delimiter) != 1:
+    @attachment_delimiter.setter
+    def attachment_delimiter(self, attachment_delimiter: str):
+        if not attachment_delimiter:
+            raise ValueError("No value for 'attachment_delimiter' has been specified")
+        if len(attachment_delimiter) != 1:
             raise ValueError("'delimiter' needs to be exactly one character")
-        self.__delimiter = delimiter
+        self.__attachment_delimiter = attachment_delimiter
 
     @attachments.setter
     def attachments(self, attachments: object):
@@ -265,9 +266,9 @@ class AppriseLibrary:
     def get_body(self):
         return self.body
 
-    @keyword("Get Delimiter")
-    def get_delimiter(self):
-        return self.delimiter
+    @keyword("Get Attachment Delimiter")
+    def get_attachment_delimiter(self):
+        return self.attachment_delimiter
 
     @keyword("Get Clients")
     def get_clients(self):
@@ -303,10 +304,10 @@ class AppriseLibrary:
         logger.debug(msg="Setting 'body' attribute")
         self.body = body
 
-    @keyword("Set Delimiter")
-    def set_delimiter(self, delimiter: str = None):
-        logger.debug(msg="Setting 'delimiter' attribute")
-        self.delimiter = delimiter
+    @keyword("Set Attachment Delimiter")
+    def set_attachment_delimiter(self, attachment_delimiter: str = None):
+        logger.debug(msg="Setting 'attachment_delimiter' attribute")
+        self.attachment_delimiter = attachment_delimiter
 
     @keyword("Set Notify Type")
     def set_notify_type(self, notify_type: str = None):

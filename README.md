@@ -3,7 +3,7 @@
 
 ```robotframework-apprise``` is a [Robot Framework](https://www.robotframework.org) keyword collection for the [Apprise](https://github.com/caronc/apprise) push message library. It enables Robot Framework users to send push/email messages to every message service supported by Apprise.
 
-![transmit](https://github.com/joergschultzelutter/robotframework-apprise/blob/master/img/message.jpg)
+![transmit](https://github.com/joergschultzelutter/robotframework-apprise/blob/master/img/message.jpg?raw=true)
 
 ## Installation
 
@@ -13,32 +13,29 @@ The easiest way is to install this package is from pypi:
 
 ## Robot Framework Library Example
 
-In order to run the example code, you need to provide at least one valid target messenger. Have a look at [Apprise's list of supported messengers](https://github.com/caronc/apprise/wiki)
+In order to run the example code, you need to provide at least one valid target messenger. Have a look at [Apprise's list of supported messenger platforms](https://github.com/caronc/apprise/wiki)
 
 - [send_apprise_message.robot](https://github.com/joergschultzelutter/robotframework-apprise/blob/master/test/send_apprise_message.robot)
 
 ## Library usage and supported keywords
 
-| Keyword|Description|
-|------- |-----------|
-|``Send Apprise Message``|Sends a push message through Apprise|
-|``Set Clients`` and ``Set Attachments``|Sets a new value list and replace the previous values|
-|``Add Client`` and ``Add Attachment``|Adds a value to an existing list|
-|``Remove Client`` and ``Remove Attachment``|Removes a value from an existing list (if present). Trying to remove a non-existing entry will NOT result in an error|
-|``Clear All Clients`` and ``Clear All Attachments``|Completely removes the current values from the respective list|
-|``Set Delimiter``|Optional reconfiguration of this Robot Framework library's delimiter. See details below|
-|``Set Notify Type``|Sets one of Apprise's [supported notify types](https://github.com/caronc/apprise/wiki/Development_API#message-types-and-themes). Valid values are ``info``,``success``,``warning``, and ``failure``. Default notify type is ``info``|
-|``Set Body Format``|Sets one of Apprise's [supported body formats](https://github.com/caronc/apprise/wiki/Development_API#notify--send-notifications). Valid values are ``html``,``text``, and ``markdown``. Default body format is ``html``|
-|``Set Config File``|Allows you to specify a single Apprise [config file](https://github.com/caronc/apprise#configuration-files) in YAML or Text format |
+| Keyword                                             | Description                                                                                                                                                                                                                          |
+|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ``Send Apprise Message``                            | Sends a push message through Apprise                                                                                                                                                                                                 |
+| ``Set Clients`` and ``Set Attachments``             | Sets a new value list and replace the previous values                                                                                                                                                                                |
+| ``Add Client`` and ``Add Attachment``               | Adds a value to an existing list                                                                                                                                                                                                     |
+| ``Remove Client`` and ``Remove Attachment``         | Removes a value from an existing list (if present). Trying to remove a non-existing entry will NOT result in an error                                                                                                                |
+| ``Clear All Clients`` and ``Clear All Attachments`` | Completely removes the current values from the respective list                                                                                                                                                                       |
+| ``Set Attachment Delimiter``                        | Optional delimiter reconfiguration - see details below                                                                                                                                                                               |
+| ``Set Notify Type``                                 | Sets one of Apprise's [supported notify types](https://github.com/caronc/apprise/wiki/Development_API#message-types-and-themes). Valid values are ``info``,``success``,``warning``, and ``failure``. Default notify type is ``info`` |
+| ``Set Body Format``                                 | Sets one of Apprise's [supported body formats](https://github.com/caronc/apprise/wiki/Development_API#notify--send-notifications). Valid values are ``html``,``text``, and ``markdown``. Default body format is ``html``             |
+| ``Set Config File``                                 | Allows you to specify a single Apprise [config file](https://github.com/caronc/apprise#configuration-files) in YAML or Text format                                                                                                   |
 
-
-All ``clients`` and ``attachments`` options can be passed as a ``List`` type variable or as a ``string``. If you use a ``string``, the default delimiter is a comma ``,``. In case you need to use a different delimiter for your string, use the ``Set Delimiter`` keyword.
+Both ``clients`` and ``attachments`` options can be passed as a ``List`` type variable __or__ as a ``string``. If you use a ``string``, the default delimiter is a comma ``,``. Use the ``Set Attachment Delimiter`` keyword in case you need to use a different delimiter for your attachments.
 
 All ``Set ...`` keywords provide corresponding ``Get ...`` keywords.
 
-If you specify ``Client`` settings additionally to a ``Config File``, the library will honor both settings.
-
-``Attachments`` are purely optional. Providing at least one ``Client`` is mandatory, though. Both ``Attachments`` and ``Clients`` can either be provided as a ``List`` item or as a separated string.
+``Attachments`` are purely optional. Providing at least one ``Client`` is mandatory, though.
 
 Examples:
 
@@ -66,7 +63,7 @@ Set Test Variable       ${CONFIG_FILE}  config.yaml
 Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    config_file=${CONFIG_FILE}     attachments=${IMAGE_LIST}
 ```
 
-
 ## Known issues
 
 - The current version of this library does not support Apprise's whole feature set. Options such as tagging are not implemented (but may work if you use a [config file](https://github.com/caronc/apprise#configuration-files)-based setting)
+- Unlike the original Apprise API, only one YAML config file is currently supported with this Robot Framework keyword library.

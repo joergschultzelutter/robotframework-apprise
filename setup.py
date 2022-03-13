@@ -4,19 +4,17 @@ from setuptools import setup, find_packages
 import os
 
 if __name__ == "__main__":
-
-	VERSION = os.getenv("GITHUB_PROGRAM_VERSION")
-
 	with open("README.md", "r") as fh:
 		long_description = fh.read()
 		
+	VERSION = os.getenv("GITHUB_PROGRAM_VERSION")
 	if not VERSION:
 		raise ValueError("Did not receive version info from GitHub")
 		
 	setup(
 		name="robotframework-apprise",
 		version=VERSION,
-		description="Robot Framework keywords for Apprise push messaging Python library, https://github.com/caronc/apprise",
+		description="Robot Framework keywords for the 'Apprise' push messaging library",
 		long_description=long_description,
 		long_description_content_type="text/markdown",
 		author="Joerg Schultze-Lutter",
@@ -25,14 +23,16 @@ if __name__ == "__main__":
 		packages=find_packages(),
 		classifiers=[
 			"Intended Audience :: Developers",
-			"Programming Language :: Python",
 			"Programming Language :: Python :: 3",
-			"Topic :: Software Development",
+			"Natural Language :: English",
 			"License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 			"Operating System :: OS Independent",
 			"Development Status :: 4 - Beta",
 			"Framework :: Robot Framework",
+			"Framework :: Robot Framework :: Library",
+			"Topic :: Software Development",
 			"Topic :: Software Development :: Testing",
+			"Topic :: Software Development :: Quality Assurance",
 		],
 		license="GNU General Public License v3 (GPLv3)",
 		install_requires=["robotframework>=4.1.3", "apprise>=0.9.6"],

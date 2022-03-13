@@ -6,3 +6,4 @@ report.html
 credentials
 testme.py
 __pycache__
+src/config.yaml
