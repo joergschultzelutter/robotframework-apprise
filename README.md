@@ -52,7 +52,7 @@ Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to App
 
 ```robot
 # Send a message with one client. Our attachments use a custom delimiter ^
-Set Delimiter            ^
+Set Attachment Delimiter    ^
 Send Apprise Message    title=Robot Framework Apprise Demo   body=Connect to Apprise with your Robot Framework Tests!    clients=<apprise_client>     attachments=http://www.mysite.com/image1.jpg^http://www.mysite.com/image2.jpg
 ```
 
