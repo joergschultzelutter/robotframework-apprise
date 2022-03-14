@@ -21,6 +21,7 @@ if __name__ == "__main__":
 		author_email="joerg.schultze.lutter@gmail.com",
 		url="https://github.com/joergschultzelutter/robotframework-apprise",
 		packages=find_packages(),
+                include_package_data=True,
 		classifiers=[
 			"Intended Audience :: Developers",
 			"Programming Language :: Python :: 3",
