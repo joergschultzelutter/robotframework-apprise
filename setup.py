@@ -36,6 +36,6 @@ if __name__ == "__main__":
 			"Topic :: Software Development :: Quality Assurance",
 		],
 		license="GNU General Public License v3 (GPLv3)",
-		install_requires=["robotframework>=4.1.3", "apprise>=0.9.6"],
+		install_requires=["robotframework>=4.0.1", "apprise>=0.9.6"],
 		keywords=["Notifications", "Notification Service", "Push Notifications", "Notifier", "Alerts", "Robot Framework"]
 	)
